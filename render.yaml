@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: sashank-ai-chat-bot
+    env: static
+    buildCommand: echo "No build needed for static site"
+    staticPublishPath: .
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+

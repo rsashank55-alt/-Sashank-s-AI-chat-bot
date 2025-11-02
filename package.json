@@ -1,0 +1,22 @@
+{
+  "name": "sashank-ai-chat-bot",
+  "version": "1.0.0",
+  "description": "Premium AI Chat Bot with ChatGPT-like UI/UX",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx http-server . -p $PORT -c-1",
+    "dev": "npx http-server . -p 8000"
+  },
+  "keywords": [
+    "ai",
+    "chatbot",
+    "chat",
+    "assistant"
+  ],
+  "author": "Sashank",
+  "license": "MIT",
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
+
