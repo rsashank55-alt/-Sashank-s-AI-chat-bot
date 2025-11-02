@@ -754,54 +754,84 @@ function processMathText(text) {
 // Render math in an element
 function renderMathInElement(element) {
     // Check if KaTeX is loaded
-    if (typeof window !== 'undefined' && window.katex) {
+    if (typeof window !== 'undefined' && window.katex && typeof window.katex.render === 'function') {
         try {
             // Render block math
-            const mathBlocks = element.querySelectorAll('.math-block');
+            const mathBlocks = element.querySelectorAll('.math-block:not(.katex-rendered)');
             mathBlocks.forEach(block => {
                 try {
+                    // Skip if already rendered
+                    if (block.classList.contains('katex-rendered')) return;
+                    
                     const mathContent = block.textContent || block.innerText;
+                    if (!mathContent || !mathContent.trim()) return;
+                    
                     // Clear the block first
+                    const originalContent = mathContent;
                     block.textContent = '';
-                    window.katex.render(mathContent, block, {
+                    
+                    // Render with KaTeX
+                    window.katex.render(originalContent.trim(), block, {
                         displayMode: true,
                         throwOnError: false,
-                        errorColor: '#cc0000'
+                        errorColor: '#ef4444',
+                        strict: false
                     });
+                    
+                    // Mark as rendered
+                    block.classList.add('katex-rendered');
                 } catch (e) {
-                    console.error('KaTeX block render error:', e, block.textContent);
-                    // Keep original text if rendering fails
+                    console.error('KaTeX block render error:', e, 'Content:', block.textContent || block.innerText);
+                    // Restore original text if rendering fails
+                    if (block.textContent === '') {
+                        block.textContent = block.innerText || originalContent || 'Math rendering error';
+                    }
                 }
             });
 
             // Render inline math
-            const mathInlines = element.querySelectorAll('.math-inline');
+            const mathInlines = element.querySelectorAll('.math-inline:not(.katex-rendered)');
             mathInlines.forEach(inline => {
                 try {
+                    // Skip if already rendered
+                    if (inline.classList.contains('katex-rendered')) return;
+                    
                     const mathContent = inline.textContent || inline.innerText;
+                    if (!mathContent || !mathContent.trim()) return;
+                    
                     // Clear the inline first
+                    const originalContent = mathContent;
                     inline.textContent = '';
-                    window.katex.render(mathContent, inline, {
+                    
+                    // Render with KaTeX
+                    window.katex.render(originalContent.trim(), inline, {
                         displayMode: false,
                         throwOnError: false,
-                        errorColor: '#cc0000'
+                        errorColor: '#ef4444',
+                        strict: false
                     });
+                    
+                    // Mark as rendered
+                    inline.classList.add('katex-rendered');
                 } catch (e) {
-                    console.error('KaTeX inline render error:', e, inline.textContent);
-                    // Keep original text if rendering fails
+                    console.error('KaTeX inline render error:', e, 'Content:', inline.textContent || inline.innerText);
+                    // Restore original text if rendering fails
+                    if (inline.textContent === '') {
+                        inline.textContent = inline.innerText || originalContent || 'Math rendering error';
+                    }
                 }
             });
         } catch (e) {
             console.error('KaTeX render error:', e);
         }
     } else {
-        // KaTeX not loaded yet, try again after a short delay (max 10 attempts)
-        const attempts = element.dataset.renderAttempts || 0;
-        if (attempts < 10) {
-            element.dataset.renderAttempts = String(parseInt(attempts) + 1);
-            setTimeout(() => renderMathInElement(element), 200);
+        // KaTeX not loaded yet, try again after a short delay (max 15 attempts)
+        const attempts = parseInt(element.dataset.renderAttempts || '0');
+        if (attempts < 15) {
+            element.dataset.renderAttempts = String(attempts + 1);
+            setTimeout(() => renderMathInElement(element), 300);
         } else {
-            console.warn('KaTeX failed to load after multiple attempts');
+            console.warn('KaTeX failed to load after multiple attempts. Math formulas may not render correctly.');
         }
     }
 }
@@ -883,7 +913,15 @@ function addMessage(role, text) {
     elements.messagesContainer.appendChild(messageDiv);
     
     // Render math equations after adding to DOM
-    renderMathInElement(messageText);
+    // Use requestAnimationFrame to ensure DOM is fully ready
+    requestAnimationFrame(() => {
+        renderMathInElement(messageText);
+    });
+    
+    // Also try rendering after a short delay to catch any late-loading issues
+    setTimeout(() => {
+        renderMathInElement(messageText);
+    }, 100);
     
     scrollToBottom();
     saveChatHistory();
@@ -969,6 +1007,13 @@ function loadConversation(id) {
                     addMessageToUI(msg.role, msg.content);
                 }
             });
+            // Re-render all math after loading all messages
+            setTimeout(() => {
+                const allMessageTexts = document.querySelectorAll('.message-text');
+                allMessageTexts.forEach(msgText => {
+                    renderMathInElement(msgText);
+                });
+            }, 200);
         } else {
             showWelcomeScreen();
         }
