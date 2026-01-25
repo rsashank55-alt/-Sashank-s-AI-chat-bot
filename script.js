@@ -1,8 +1,8 @@
 // API Configuration
 const API_CONFIG = {
     url: "https://api.euron.one/api/v1/euri/chat/completions",
-    apiKey: "euri-d0c00732524b1b5ae66443fd154d33e118a6d7c22f2ce04a823f9bf58a3125df",
-    defaultModel: "gpt-4.1-nano",
+    apiKey: "euri-cb7daa725057af44359826818b2dcca74ab7207d4f68ae7caac7e8f490647136",
+    defaultModel: "gemini-2.5-pro",
     defaultMaxTokens: 1000,
     defaultTemperature: 0.7
 };
